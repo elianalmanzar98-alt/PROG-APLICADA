@@ -199,3 +199,4 @@ C:\PROG-APLICADA 3-2026\GestionLibros\GestionLibros\obj\Debug\net10.0\refint\Ges
 C:\PROG-APLICADA 3-2026\GestionLibros\GestionLibros\obj\Debug\net10.0\GestionLibros.pdb
 C:\PROG-APLICADA 3-2026\GestionLibros\GestionLibros\obj\Debug\net10.0\GestionLibros.genruntimeconfig.cache
 C:\PROG-APLICADA 3-2026\GestionLibros\GestionLibros\obj\Debug\net10.0\ref\GestionLibros.dll
+C:\PROG-APLICADA 3-2026\GestionLibros\GestionLibros\obj\Debug\net10.0\GestionLibros.sourcelink.json
