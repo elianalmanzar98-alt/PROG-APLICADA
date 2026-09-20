@@ -1,0 +1,58 @@
+@page "/Estudiante/Index"
+
+@using Microsoft.AspNetCore.Components.Web
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@using GestionLibros.Models
+@using GestionLibros.Services
+
+@inject EstudianteService estudiantesService
+@rendermode InteractiveServer
+
+<PageTitle>Lista de Estudiantes</PageTitle>
+
+<div class="card shadow-lg m-4">
+    <div class="card-header text-center">
+        <h5>Registro de Estudiantes</h5>
+    </div>
+    <div class="card-body">
+        <div class="row mb-3">
+            <div class="col text-end">
+                <a href="/Estudiante/Create" class="btn btn-primary bi bi-plus-circle"> Nuevo Estudiante</a>
+            </div>
+        </div>
+
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Nombres</th>
+                    <th>Dirección</th>
+                    <th>Email</th>
+                    <th>Fecha Nacimiento</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var est in ListaEstudiantes)
+                {
+                    <tr>
+                        <td>@est.EstudianteId</td>
+                        <td>@est.Nombres</td>
+                        <td>@est.Direccion</td>
+                        <td>@est.Email</td>
+                    <td>@(est.FechaNacimiento?.ToString("dd/MM/yyyy"))</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    public List<Estudiante> ListaEstudiantes { get; set; } = new List<Estudiante>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Carga todos los estudiantes de SQL Server al abrir la página
+        ListaEstudiantes = await estudiantesService.Listar(e => true);
+    }
+}
