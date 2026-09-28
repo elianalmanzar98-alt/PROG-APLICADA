@@ -1,0 +1,83 @@
+@page "/Estudiante/Create"
+
+
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Web
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+
+
+@using GestionLibros.Models
+@using GestionLibros.Services
+
+@inject EstudianteService estudiantesService
+@inject NavigationManager navigationManager
+@rendermode InteractiveServer
+
+<PageTitle>Registro de Estudiante</PageTitle>
+
+<EditForm Model="estudiante" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+
+    <div class="card shadow-lg m-4">
+        <div class="card-header text-center">
+            <h5>Crear Estudiante</h5>
+        </div>
+        <div class="card-body">
+            @if (!string.IsNullOrEmpty(MensajeError))
+            {
+                <div class="alert alert-danger">@MensajeError</div>
+            }
+
+            <div class="mb-3">
+                <label class="form-label"><strong>Nombres</strong></label>
+                <InputText class="form-control" @bind-Value="estudiante.Nombres"></InputText>
+                <ValidationMessage For="(() => estudiante.Nombres)" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><strong>Dirección</strong></label>
+                <InputText class="form-control" @bind-Value="estudiante.Direccion"></InputText>
+                <ValidationMessage For="(() => estudiante.Direccion)" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><strong>Email</strong></label>
+                <InputText class="form-control" @bind-Value="estudiante.Email"></InputText>
+                <ValidationMessage For="(() => estudiante.Email)" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><strong>Fecha de Nacimiento</strong></label>
+                <InputDate class="form-control" @bind-Value="estudiante.FechaNacimiento"></InputDate>
+                <ValidationMessage For="(() => estudiante.FechaNacimiento)" />
+            </div>
+        </div>
+        <div class="card-footer text-center mt-2">
+            <a href="/Estudiante/Index" class="btn btn-secondary"> <span class="bi bi-arrow-left"></span> Volver</a>
+            <button type="submit" class="btn btn-primary bi bi-floppy"> Guardar</button>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    
+    public Estudiante estudiante { get; set; } = new Estudiante(); 
+    public string MensajeError { get; set; } = string.Empty;
+
+    public async Task Guardar()
+    {
+        MensajeError = string.Empty;
+
+        if (await estudiantesService.ExisteNombre(estudiante.Nombres, estudiante.EstudianteId))
+        {
+            MensajeError = "Ya existe un estudiante registrado con este nombre Intente con otro.";
+            return;
+        }
+
+        var guardo = await estudiantesService.Guardar(this.estudiante);
+        if (guardo)
+        {
+            navigationManager.NavigateTo("/Estudiante/Index");
+        }
+    }
+}

@@ -1,0 +1,4 @@
+{
+    "appService.defaultWebAppToDeploy": "/subscriptions/c6926881-7ac7-4520-8988-bd6f1cbd5528/resourceGroups/Aplicada1/providers/Microsoft.Web/sites/RegistroLibros0110",
+    "appService.deploySubpath": "bin\\Release\\net10.0\\publish"
+}

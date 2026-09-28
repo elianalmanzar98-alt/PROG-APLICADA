@@ -1,0 +1,238 @@
+﻿@page "/libros"
+@rendermode RenderMode.InteractiveServer
+@using GestionLibros.Models
+@using GestionLibros.Services
+@using GestionLibros.Components.Pages
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components
+@inject LibroService libroService
+@inject EstudianteService estudianteService
+@inject PrestamoService prestamoService
+@inject NavigationManager navManager
+
+<PageTitle>Consulta de Libros</PageTitle>
+
+<div class="card shadow mt-4 border-0 rounded-3">
+    <div class="card-header bg-dark text-white py-3 rounded-top">
+        <h3 class="mb-0"><i class="bi bi-journal-text me-2"></i><strong>Catálogo de Libros</strong></h3>
+    </div>
+
+    <div class="card-body bg-light">
+
+        <div class="row mb-4 align-items-end p-3 bg-white rounded shadow-sm">
+            <div class="col-md-3">
+                <label class="form-label text-muted"><strong>Filtrar por:</strong></label>
+                <select class="form-select border-secondary" @bind="filtro">
+                    <option value="0">Elija una opción...</option>
+                    <option value="1">LibroId</option>
+                    <option value="2">Título</option>
+                    <option value="3">Autor</option>
+                </select>
+            </div>
+            <div class="col-md-5">
+                <label class="form-label text-muted"><strong>Término de búsqueda:</strong></label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control border-start-0" placeholder="Escribe aquí para buscar..." @bind="valorBusqueda" />
+                </div>
+            </div>
+            <div class="col-md-4 text-end">
+                <button class="btn btn-dark px-4" @onclick="Buscar">Buscar</button>
+                <button class="btn btn-outline-secondary ms-2" @onclick="Restablecer">Limpiar</button>
+            </div>
+        </div>
+
+        <div class="table-responsive shadow-sm rounded bg-white p-2">
+            <QuickGrid Items="@listaLibros.AsQueryable()" Class="table table-hover table-borderless align-middle text-center mb-0">
+                <PropertyColumn Property="@(l => l.LibroId)" Title="ID" />
+                <PropertyColumn Property="@(l => l.Titulo)" Title="Título" />
+                <PropertyColumn Property="@(l => l.Autor)" Title="Autor" />
+                <PropertyColumn Property="@(l => l.AnoPublicacion)" Title="Año" />
+                <TemplateColumn Title="Estado">
+                    @if (librosPrestados.Contains(context.LibroId))
+                    {
+                        <span class="badge bg-warning text-dark">Prestado</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-success">Disponible</span>
+                    }
+                </TemplateColumn>
+                <TemplateColumn Title="Acciones">
+                    <a href="/editar-libro/@context.LibroId" class="btn btn-warning btn-sm shadow-sm text-dark fw-bold px-3">
+                        Editar
+                    </a>
+                    <button class="btn btn-primary btn-sm shadow-sm px-3 ms-1"
+                            disabled="@librosPrestados.Contains(context.LibroId)"
+                            @onclick="() => AbrirPrestamo(context)">
+                        Prestar
+                    </button>
+                    <button class="btn btn-danger btn-sm shadow-sm px-3 ms-1" @onclick="() => AbrirConfirmacionEliminar(context)">
+                        Eliminar
+                    </button>
+                </TemplateColumn>
+            </QuickGrid>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-3 px-2">
+            <span class="text-muted">Total de registros: <strong>@listaLibros.Count</strong></span>
+            <a href="/crear-libro" class="btn btn-success shadow px-4">
+                <i class="bi bi-plus-circle me-1"></i> Agregar Nuevo Libro
+            </a>
+        </div>
+    </div>
+</div>
+
+<ModalConfirmacion @ref="   modalEliminar"
+                    Titulo="Eliminar libro"
+                    Mensaje="@mensajeEliminar"
+                    OnConfirmar="ConfirmarEliminar" />
+
+@if (mostrarModalPrestamo)
+{
+    <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Prestar "@libroAPrestar?.Titulo"</h5>
+                    <button type="button" class="btn-close" @onclick="CerrarModalPrestamo"></button>
+                </div>
+                <div class="modal-body">
+                    @if (!string.IsNullOrEmpty(mensajeErrorPrestamo))
+                    {
+                        <div class="alert alert-danger">@mensajeErrorPrestamo</div>
+                    }
+                    <label class="form-label fw-bold">Estudiante</label>
+                    <select class="form-select" @bind="estudianteSeleccionadoId">
+                        <option value="0">Elija un estudiante...</option>
+                        @foreach (var est in listaEstudiantes)
+                        {
+                            <option value="@est.EstudianteId">@est.Nombres</option>
+                        }
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CerrarModalPrestamo">Cancelar</button>
+                    <button type="button" class="btn btn-primary" @onclick="ConfirmarPrestamo">Prestar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+
+    public List<Libros> listaLibros = new List<Libros>();
+    public HashSet<int> librosPrestados = new HashSet<int>();
+    public List<Estudiante> listaEstudiantes = new List<Estudiante>();
+
+    public int filtro = 0;
+    public string valorBusqueda = "";
+
+    
+    private ModalConfirmacion? modalEliminar;
+    private int libroAEliminarId;
+    private string mensajeEliminar = "";
+
+
+    private bool mostrarModalPrestamo = false;
+    private Libros? libroAPrestar;
+    private int estudianteSeleccionadoId = 0;
+    private string mensajeErrorPrestamo = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        listaLibros = libroService.Listar(l => true);
+        listaEstudiantes = await estudianteService.Listar(e => true);
+        await CargarDisponibilidad();
+    }
+
+    private async Task CargarDisponibilidad()
+    {
+        var prestamosActivos = await prestamoService.Listar(p => p.FechaDevolucion == null);
+        librosPrestados = prestamosActivos.Select(p => p.LibroId).ToHashSet();
+    }
+
+    public void Buscar()
+    {
+        if (string.IsNullOrWhiteSpace(valorBusqueda))
+        {
+            listaLibros = libroService.Listar(l => true);
+            return;
+        }
+
+        if (filtro == 1 && int.TryParse(valorBusqueda, out int id))
+        {
+            listaLibros = libroService.Listar(l => l.LibroId == id);
+        }
+        else if (filtro == 2)
+        {
+            listaLibros = libroService.Listar(l => l.Titulo.ToLower().Contains(valorBusqueda.ToLower()));
+        }
+        else if (filtro == 3)
+        {
+            listaLibros = libroService.Listar(l => l.Autor.ToLower().Contains(valorBusqueda.ToLower()));
+        }
+    }
+
+    public void Restablecer()
+    {
+        filtro = 0;
+        valorBusqueda = "";
+        listaLibros = libroService.Listar(l => true);
+    }
+
+    
+    private void AbrirConfirmacionEliminar(Libros libro)
+    {
+        libroAEliminarId = libro.LibroId;
+        mensajeEliminar = $"Desea eliminar el libro \"{libro.Titulo}\"?";
+    
+    }
+
+    private void ConfirmarEliminar()
+    {
+        var eliminado = libroService.Eliminar(libroAEliminarId);
+        if (eliminado)
+        {
+            listaLibros = libroService.Listar(l => true);
+        }
+    }
+
+
+    private void AbrirPrestamo(Libros libro)
+    {
+        libroAPrestar = libro;
+        estudianteSeleccionadoId = 0;
+        mensajeErrorPrestamo = "";
+        mostrarModalPrestamo = true;
+    }
+
+    private void CerrarModalPrestamo()
+    {
+        mostrarModalPrestamo = false;
+    }
+
+    private async Task ConfirmarPrestamo()
+    {
+        mensajeErrorPrestamo = "";
+
+        if (estudianteSeleccionadoId == 0 || libroAPrestar == null)
+        {
+            mensajeErrorPrestamo = "elija un estudiante.";
+            return;
+        }
+
+        var prestado = await prestamoService.Prestar(libroAPrestar.LibroId, estudianteSeleccionadoId);
+        if (!prestado)
+        {
+            mensajeErrorPrestamo = "este libro ya fue prestado a un estudiante";
+            await CargarDisponibilidad();
+            return;
+        }
+
+        mostrarModalPrestamo = false;
+        await CargarDisponibilidad();
+    }
+}
