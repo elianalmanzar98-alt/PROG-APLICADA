@@ -1,50 +1,44 @@
-
-
 @if (Visible)
 {
-    <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
-        <div class="modal-dialog modal-dialog-centered">
+    <div class="modal fade show d-block" tabindex="-1">
+        <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">@Titulo</h5>
-                    <button type="button" class="btn-close" @onclick="Cancelar"></button>
+                    <button type="button" class="btn-close" aria-label="Close" @onclick="Cerrar"></button>
                 </div>
                 <div class="modal-body">
-                    <p class="mb-0">@Mensaje</p>
+                    <p>@Mensaje</p>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
-                    <button type="button" class="btn @BotonConfirmarClase" @onclick="Confirmar">@TextoBotonConfirmar</button>
+                    <button type="button" class="btn btn-secondary" @onclick="Cerrar">Cerrar</button>
+                    <button type="button" class="btn btn-primary" @onclick="Confirmar">@TextoConfirmar</button>
                 </div>
             </div>
         </div>
     </div>
+    <div class="modal-backdrop fade show"></div>
 }
-@code{
-    [Parameter] public string Titulo {get; set;} = "Confirmar";
-    [Parameter] public string Mensaje {get; set;  } = "Desea continuar?";
-    [Parameter] public string TextoBotonConfirmar {get; set;} = "Eliminar";
-    [Parameter] public string BotonConfirmarClase {get; set; } = " bton danger";
 
-    [Parameter] public EventCallback OnConfirmar {get; set;}
+@code {
+    [Parameter] public string Titulo { get; set; } = "Confirmar";
+    [Parameter] public string Mensaje { get; set; } = "¿Desea continuar?";
+    [Parameter] public string TextoConfirmar { get; set; } = "Confirmar";
+    [Parameter] public EventCallback OnConfirmar { get; set; }
 
-    public bool Visible {get; private set;} = false;
+    public bool Visible { get; private set; }
 
     public void Abrir()
     {
         Visible = true;
         StateHasChanged();
     }
-    private void Cancelar()
-    {
-        Visible  = false;
 
-    }
+    private void Cerrar() => Visible = false;
 
     private async Task Confirmar()
     {
         Visible = false;
-    await OnConfirmar.InvokeAsync();
+        await OnConfirmar.InvokeAsync();
     }
-
 }

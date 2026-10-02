@@ -1,0 +1,132 @@
+@page "/Estudiante/Index"
+@inject EstudiantesService estudiantesService
+@rendermode InteractiveServer
+
+<PageTitle>Consulta de Estudiante</PageTitle>
+
+<div class="card shadow-lg m-4">
+    <div class="card-header text-center">
+        <h3>Consulta de Estudiante</h3>
+    </div>
+    <div class="card-body">
+        <div class="row mb-3 align-items-end">
+            <div class="col-3">
+                <label class="form-label"><strong>Filtrar por</strong></label>
+                <select class="form-select" @bind="Filtro">
+                    <option value="">Elija una opción</option>
+                    <option value="EstudianteId">Estudiante ID</option>
+                    <option value="Nombres">Nombre</option>
+                    <option value="Direccion">Dirección</option>
+                    <option value="Email">Email</option>
+                </select>
+            </div>
+            <div class="col-4">
+                <label class="form-label"><strong>Búsqueda</strong></label>
+                <div class="input-group">
+                    <input class="form-control" placeholder="Buscar" @bind="ValorBusqueda" />
+                    <button class="btn btn-outline-primary" @onclick="Buscar">Buscar</button>
+                </div>
+            </div>
+            <div class="col-2">
+                <button class="btn btn-outline-secondary" @onclick="Restablecer">Restablecer</button>
+            </div>
+        </div>
+
+        <table class="table table-bordered text-center align-middle">
+            <thead>
+                <tr>
+                    <th>Estudiante ID</th>
+                    <th>Nombre</th>
+                    <th>Dirección</th>
+                    <th>Email</th>
+                    <th>Fecha de Nacimiento</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var e in Lista)
+                {
+                    <tr>
+                        <td>@e.EstudianteId</td>
+                        <td>@e.Nombres</td>
+                        <td>@e.Direccion</td>
+                        <td>@e.Email</td>
+                        <td>@e.FechaNacimiento.ToString("dd/MM/yyyy")</td>
+                        <td>
+                            <a href="/Estudiante/Edit/@e.EstudianteId" class="btn btn-outline-warning">Editar</a>
+                            <button class="btn btn-outline-danger" @onclick="() => AbrirEliminar(e)">Eliminar</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <p><strong>Cantidad:</strong> @Lista.Count</p>
+    </div>
+</div>
+
+<a href="/Estudiante/Create" class="btn btn-primary ms-4">Crear Estudiante</a>
+
+<ModalConfirmacion @ref="modal"
+                   Titulo="Eliminar estudiante"
+                   Mensaje="@MensajeEliminar"
+                   TextoConfirmar="Eliminar"
+                   OnConfirmar="Eliminar" />
+
+@code {
+    public List<Estudiantes> Lista { get; set; } = new();
+    public string Filtro { get; set; } = "";
+    public string ValorBusqueda { get; set; } = "";
+
+    private ModalConfirmacion? modal;
+    private int IdEliminar;
+    private string MensajeEliminar = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        Lista = await estudiantesService.Listar(e => true);
+    }
+
+    public async Task Buscar()
+    {
+        if (string.IsNullOrWhiteSpace(ValorBusqueda) || string.IsNullOrEmpty(Filtro))
+        {
+            Lista = await estudiantesService.Listar(e => true);
+            return;
+        }
+
+        var valor = ValorBusqueda.ToLower();
+        if (Filtro == "EstudianteId")
+        {
+            Lista = int.TryParse(ValorBusqueda, out var id)
+                ? await estudiantesService.Listar(e => e.EstudianteId == id)
+                : new List<Estudiantes>();
+        }
+        else if (Filtro == "Nombres")
+            Lista = await estudiantesService.Listar(e => e.Nombres.ToLower().Contains(valor));
+        else if (Filtro == "Direccion")
+            Lista = await estudiantesService.Listar(e => e.Direccion.ToLower().Contains(valor));
+        else if (Filtro == "Email")
+            Lista = await estudiantesService.Listar(e => e.Email.ToLower().Contains(valor));
+    }
+
+    public async Task Restablecer()
+    {
+        Filtro = "";
+        ValorBusqueda = "";
+        Lista = await estudiantesService.Listar(e => true);
+    }
+
+    private void AbrirEliminar(Estudiantes estudiante)
+    {
+        IdEliminar = estudiante.EstudianteId;
+        MensajeEliminar = $"¿Desea eliminar al estudiante \"{estudiante.Nombres}\"?";
+        modal?.Abrir();
+    }
+
+    private async Task Eliminar()
+    {
+        if (await estudiantesService.Eliminar(IdEliminar))
+            await Buscar();
+    }
+}

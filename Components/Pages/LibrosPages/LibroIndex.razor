@@ -1,0 +1,127 @@
+@page "/Libro/Index"
+@inject LibrosService librosService
+@rendermode InteractiveServer
+
+<PageTitle>Consulta de Libros</PageTitle>
+
+<div class="card shadow-lg m-4">
+    <div class="card-header text-center">
+        <h3>Consulta de Libros</h3>
+    </div>
+    <div class="card-body">
+        <div class="row mb-3 align-items-end">
+            <div class="col-3">
+                <label class="form-label"><strong>Filtrar por</strong></label>
+                <select class="form-select" @bind="Filtro">
+                    <option value="">Elija una opción</option>
+                    <option value="LibroId">LibroId</option>
+                    <option value="Titulo">Título</option>
+                    <option value="Autor">Autor</option>
+                </select>
+            </div>
+            <div class="col-4">
+                <label class="form-label"><strong>Búsqueda</strong></label>
+                <div class="input-group">
+                    <input class="form-control" placeholder="Buscar" @bind="ValorBusqueda" />
+                    <button class="btn btn-outline-primary" @onclick="Buscar">Buscar</button>
+                </div>
+            </div>
+            <div class="col-2">
+                <button class="btn btn-outline-secondary" @onclick="Restablecer">Restablecer</button>
+            </div>
+        </div>
+
+        <table class="table table-bordered text-center align-middle">
+            <thead>
+                <tr>
+                    <th>LibroId</th>
+                    <th>Título</th>
+                    <th>Autor</th>
+                    <th>Año de Publicación</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var libro in Lista)
+                {
+                    <tr>
+                        <td>@libro.LibroId</td>
+                        <td>@libro.Titulo</td>
+                        <td>@libro.Autor</td>
+                        <td>@libro.AnoPublicacion</td>
+                        <td>
+                            <a href="/Libro/Edit/@libro.LibroId" class="btn btn-outline-warning">Editar</a>
+                            <button class="btn btn-outline-danger" @onclick="() => AbrirEliminar(libro)">Eliminar</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <p><strong>Cantidad:</strong> @Lista.Count</p>
+    </div>
+</div>
+
+<a href="/Libro/Create" class="btn btn-primary ms-4">Crear Libro</a>
+
+<ModalConfirmacion @ref="modal"
+                   Titulo="Eliminar libro"
+                   Mensaje="@MensajeEliminar"
+                   TextoConfirmar="Eliminar"
+                   OnConfirmar="Eliminar" />
+
+@code {
+    public List<Libros> Lista { get; set; } = new();
+    public string Filtro { get; set; } = "";
+    public string ValorBusqueda { get; set; } = "";
+
+    private ModalConfirmacion? modal;
+    private int IdEliminar;
+    private string MensajeEliminar = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        Lista = await librosService.Listar(l => true);
+    }
+
+    public async Task Buscar()
+    {
+        if (string.IsNullOrWhiteSpace(ValorBusqueda) || string.IsNullOrEmpty(Filtro))
+        {
+            Lista = await librosService.Listar(l => true);
+            return;
+        }
+
+        var valor = ValorBusqueda.ToLower();
+        if (Filtro == "LibroId")
+        {
+            Lista = int.TryParse(ValorBusqueda, out var id)
+                ? await librosService.Listar(l => l.LibroId == id)
+                : new List<Libros>();
+        }
+        else if (Filtro == "Titulo")
+            Lista = await librosService.Listar(l => l.Titulo.ToLower().Contains(valor));
+        else if (Filtro == "Autor")
+            Lista = await librosService.Listar(l => l.Autor.ToLower().Contains(valor));
+    }
+
+    public async Task Restablecer()
+    {
+        Filtro = "";
+        ValorBusqueda = "";
+        Lista = await librosService.Listar(l => true);
+    }
+
+    private void AbrirEliminar(Libros libro)
+    {
+        IdEliminar = libro.LibroId;
+        MensajeEliminar = $"Desea eliminar el libro \"{libro.Titulo}\"?";
+        modal?.Abrir();
+    }
+
+    private async Task Eliminar()
+    {
+        if (await librosService.Eliminar(IdEliminar))
+            await Buscar();
+    }
+}

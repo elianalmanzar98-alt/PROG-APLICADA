@@ -22,7 +22,7 @@ namespace GestionLibros.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("GestionLibros.Models.Estudiante", b =>
+            modelBuilder.Entity("GestionLibros.Models.Estudiantes", b =>
                 {
                     b.Property<int>("EstudianteId")
                         .ValueGeneratedOnAdd()
@@ -74,13 +74,17 @@ namespace GestionLibros.Migrations
                     b.ToTable("Libros");
                 });
 
-            modelBuilder.Entity("GestionLibros.Models.Prestamo", b =>
+            modelBuilder.Entity("GestionLibros.Models.Prestamos", b =>
                 {
                     b.Property<int>("PrestamoId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PrestamoId"));
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("EstudianteId")
                         .HasColumnType("int");
@@ -100,26 +104,26 @@ namespace GestionLibros.Migrations
 
                     b.HasIndex("LibroId");
 
-                    b.ToTable("Prestamo");
+                    b.ToTable("Prestamos");
                 });
 
-            modelBuilder.Entity("GestionLibros.Models.Prestamo", b =>
+            modelBuilder.Entity("GestionLibros.Models.Prestamos", b =>
                 {
-                    b.HasOne("GestionLibros.Models.Estudiante", "estudiante")
+                    b.HasOne("GestionLibros.Models.Estudiantes", "Estudiante")
                         .WithMany()
                         .HasForeignKey("EstudianteId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("GestionLibros.Models.Libros", "libros")
+                    b.HasOne("GestionLibros.Models.Libros", "Libro")
                         .WithMany()
                         .HasForeignKey("LibroId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("estudiante");
+                    b.Navigation("Estudiante");
 
-                    b.Navigation("libros");
+                    b.Navigation("Libro");
                 });
 #pragma warning restore 612, 618
         }

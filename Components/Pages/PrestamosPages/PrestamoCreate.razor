@@ -1,0 +1,123 @@
+@page "/Prestamo/Create"
+@inject PrestamosService prestamosService
+@inject EstudiantesService estudiantesService
+@inject LibrosService librosService
+@inject NavigationManager navigationManager
+@rendermode InteractiveServer
+
+<PageTitle>Crear Préstamo</PageTitle>
+
+<EditForm Model="Prestamo" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+
+    <div class="card shadow-lg m-4">
+        <div class="card-header text-center">
+            <h3>Crear Préstamo</h3>
+        </div>
+        <div class="card-body">
+            @if (!string.IsNullOrEmpty(MensajeError))
+            {
+                <div class="alert alert-danger">@MensajeError</div>
+            }
+
+            <div class="mb-3">
+                <label class="form-label"><strong>Estudiante</strong></label>
+                <InputSelect class="form-select" @bind-Value="Prestamo.EstudianteId">
+                    <option value="0">Elija una opción</option>
+                    @foreach (var e in ListaEstudiantes)
+                    {
+                        <option value="@e.EstudianteId">@e.Nombres</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="@(() => Prestamo.EstudianteId)" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label"><strong>Libro</strong></label>
+                <InputSelect class="form-select" @bind-Value="Prestamo.LibroId">
+                    <option value="0">Elija una opción</option>
+                    @foreach (var l in ListaLibros)
+                    {
+                        <option value="@l.LibroId">@l.Titulo</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="@(() => Prestamo.LibroId)" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label"><strong>Fecha de préstamo</strong></label>
+                <InputDate class="form-control" @bind-Value="Prestamo.FechaPrestamo" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label"><strong>Fecha de devolución</strong></label>
+                <InputDate class="form-control" @bind-Value="Prestamo.FechaDevolucion" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label"><strong>Estado</strong></label>
+                <InputSelect class="form-select" @bind-Value="Prestamo.Estado">
+                    <option value="">Elija una opción</option>
+                    <option value="Prestado">Prestado</option>
+                    <option value="Devuelto">Devuelto</option>
+                </InputSelect>
+                <ValidationMessage For="@(() => Prestamo.Estado)" />
+            </div>
+        </div>
+        <div class="card-footer text-center">
+            <a href="/Prestamo/Index" class="btn btn-outline-secondary">Volver</a>
+            <button type="submit" class="btn btn-primary">Guardar</button>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    public Prestamos Prestamo { get; set; } = new();
+    public List<Estudiantes> ListaEstudiantes { get; set; } = new();
+    public List<Libros> ListaLibros { get; set; } = new();
+    public string MensajeError { get; set; } = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        ListaEstudiantes = await estudiantesService.Listar(e => true);
+        ListaLibros = await librosService.Listar(l => true);
+    }
+
+    public void Nuevo()
+    {
+        Prestamo = new Prestamos();
+    }
+
+    private async Task<bool> Validar()
+    {
+        if (Prestamo.Estado == "Prestado" && Prestamo.FechaDevolucion != null)
+        {
+            MensajeError = "Un prestamo en estado Prestado no debe tener fecha de devolucion.";
+            return false;
+        }
+        if (Prestamo.Estado == "Devuelto" && Prestamo.FechaDevolucion == null)
+        {
+            MensajeError = "Indique la fecha de devolucion.";
+            return false;
+        }
+        if (Prestamo.FechaDevolucion != null && Prestamo.FechaDevolucion < Prestamo.FechaPrestamo)
+        {
+            MensajeError = "La fecha de devolucion no puede ser anterior a la del prestamo.";
+            return false;
+        }
+        if (Prestamo.Estado == "Prestado" && await prestamosService.LibroPrestado(Prestamo.LibroId, Prestamo.PrestamoId))
+        {
+            MensajeError = "Este libro ya esta prestado a un estudiante.";
+            return false;
+        }
+        return true;
+    }
+
+    public async Task Guardar()
+    {
+        MensajeError = "";
+        if (!await Validar()) return;
+
+        var guardo = await prestamosService.Guardar(Prestamo);
+        if (guardo)
+            navigationManager.NavigateTo("/Prestamo/Index");
+        else
+            MensajeError = "Error al guardar el registro.";
+    }
+}

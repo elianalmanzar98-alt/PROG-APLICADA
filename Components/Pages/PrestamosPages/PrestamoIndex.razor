@@ -1,0 +1,134 @@
+@page "/Prestamo/Index"
+@inject PrestamosService prestamosService
+@rendermode InteractiveServer
+
+<PageTitle>Consulta de Prestamo</PageTitle>
+
+<div class="card shadow-lg m-4">
+    <div class="card-header text-center">
+        <h3>Consulta de Prestamo</h3>
+    </div>
+    <div class="card-body">
+        <div class="row mb-3 align-items-end">
+            <div class="col-3">
+                <label class="form-label"><strong>Filtrar por</strong></label>
+                <select class="form-select" @bind="Filtro">
+                    <option value="">Elija una opción</option>
+                    <option value="PrestamoId">PrestamoId</option>
+                    <option value="Estudiante">Estudiante</option>
+                    <option value="Libro">Libro</option>
+                    <option value="Estado">Estado</option>
+                </select>
+            </div>
+            <div class="col-4">
+                <label class="form-label"><strong>Búsqueda</strong></label>
+                <div class="input-group">
+                    <input class="form-control" placeholder="Buscar" @bind="ValorBusqueda" />
+                    <button class="btn btn-outline-primary" @onclick="Buscar">Buscar</button>
+                </div>
+            </div>
+            <div class="col-2">
+                <button class="btn btn-outline-secondary" @onclick="Restablecer">Restablecer</button>
+            </div>
+        </div>
+
+        <table class="table table-bordered text-center align-middle">
+            <thead>
+                <tr>
+                    <th>PrestamoId</th>
+                    <th>Estudiante</th>
+                    <th>Libro</th>
+                    <th>Fecha préstamo</th>
+                    <th>Fecha devolución</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in Lista)
+                {
+                    <tr>
+                        <td>@p.PrestamoId</td>
+                        <td>@p.Estudiante?.Nombres</td>
+                        <td>@p.Libro?.Titulo</td>
+                        <td>@p.FechaPrestamo.ToString("dd/MM/yyyy")</td>
+                        <td>@(p.FechaDevolucion?.ToString("dd/MM/yyyy") ?? "-")</td>
+                        <td>@p.Estado</td>
+                        <td>
+                            <a href="/Prestamo/Edit/@p.PrestamoId" class="btn btn-outline-warning">Editar</a>
+                            <button class="btn btn-outline-danger" @onclick="() => AbrirEliminar(p)">Eliminar</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <p><strong>Cantidad:</strong> @Lista.Count</p>
+    </div>
+</div>
+
+<a href="/Prestamo/Create" class="btn btn-primary ms-4">Crear Prestamo</a>
+
+<ModalConfirmacion @ref="modal"
+                   Titulo="Eliminar préstamo"
+                   Mensaje="@MensajeEliminar"
+                   TextoConfirmar="Eliminar"
+                   OnConfirmar="Eliminar" />
+
+@code {
+    public List<Prestamos> Lista { get; set; } = new();
+    public string Filtro { get; set; } = "";
+    public string ValorBusqueda { get; set; } = "";
+
+    private ModalConfirmacion? modal;
+    private int IdEliminar;
+    private string MensajeEliminar = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        Lista = await prestamosService.Listar(p => true);
+    }
+
+    public async Task Buscar()
+    {
+        if (string.IsNullOrWhiteSpace(ValorBusqueda) || string.IsNullOrEmpty(Filtro))
+        {
+            Lista = await prestamosService.Listar(p => true);
+            return;
+        }
+
+        var valor = ValorBusqueda.ToLower();
+        if (Filtro == "PrestamoId")
+        {
+            Lista = int.TryParse(ValorBusqueda, out var id)
+                ? await prestamosService.Listar(p => p.PrestamoId == id)
+                : new List<Prestamos>();
+        }
+        else if (Filtro == "Estudiante")
+            Lista = await prestamosService.Listar(p => p.Estudiante!.Nombres.ToLower().Contains(valor));
+        else if (Filtro == "Libro")
+            Lista = await prestamosService.Listar(p => p.Libro!.Titulo.ToLower().Contains(valor));
+        else if (Filtro == "Estado")
+            Lista = await prestamosService.Listar(p => p.Estado.ToLower().Contains(valor));
+    }
+
+    public async Task Restablecer()
+    {
+        Filtro = "";
+        ValorBusqueda = "";
+        Lista = await prestamosService.Listar(p => true);
+    }
+
+    private void AbrirEliminar(Prestamos prestamo)
+    {
+        IdEliminar = prestamo.PrestamoId;
+        MensajeEliminar = $" eesea eliminar el prestamo #{prestamo.PrestamoId}?";
+        modal?.Abrir();
+    }
+
+    private async Task Eliminar()
+    {
+        if (await prestamosService.Eliminar(IdEliminar))
+            await Buscar();
+    }
+}

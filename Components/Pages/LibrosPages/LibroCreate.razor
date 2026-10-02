@@ -1,0 +1,78 @@
+@page "/Libro/Create"
+@inject LibrosService librosService
+@inject NavigationManager navigationManager
+@rendermode InteractiveServer
+
+<PageTitle>Crear Libro</PageTitle>
+
+<EditForm Model="Libro" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+
+    <div class="card shadow-lg m-4">
+        <div class="card-header text-center">
+            <h3>Crear un nuevo libro</h3>
+        </div>
+        <div class="card-body">
+            @if (!string.IsNullOrEmpty(MensajeError))
+            {
+                <div class="alert alert-danger">@MensajeError</div>
+            }
+
+            <div class="mb-3">
+                <label class="form-label"><strong>LibroId</strong></label>
+                <InputNumber class="form-control" @bind-Value="Libro.LibroId" readonly />
+            </div>
+            <div class="mb-3">
+                <label class="form-label"><strong>Título</strong></label>
+                <InputText class="form-control" @bind-Value="Libro.Titulo" />
+                <ValidationMessage For="@(() => Libro.Titulo)" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label"><strong>Autor</strong></label>
+                <InputText class="form-control" @bind-Value="Libro.Autor" />
+                <ValidationMessage For="@(() => Libro.Autor)" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label"><strong>Año de publicación</strong></label>
+                <InputNumber class="form-control" @bind-Value="Libro.AnoPublicacion" />
+                <ValidationMessage For="@(() => Libro.AnoPublicacion)" />
+            </div>
+        </div>
+        <div class="card-footer text-center">
+            <a href="/Libro/Index" class="btn btn-outline-primary">Volver</a>
+            <button type="submit" class="btn btn-outline-success">Crear</button>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    public Libros Libro { get; set; } = new();
+    public string MensajeError { get; set; } = "";
+
+    public void Nuevo()
+    {
+        Libro = new Libros();
+    }
+
+    private async Task<bool> Validar()
+    {
+        if (await librosService.ExisteTitulo(Libro.Titulo, Libro.LibroId))
+        {
+            MensajeError = "Ya existe un libro con este titulo.";
+            return false;
+        }
+        return true;
+    }
+
+    public async Task Guardar()
+    {
+        MensajeError = "";
+        if (!await Validar()) return;
+
+        var guardo = await librosService.Guardar(Libro);
+        if (guardo)
+            navigationManager.NavigateTo("/Libro/Index");
+        else
+            MensajeError = "Error al guardar el registro.";
+    }
+}
