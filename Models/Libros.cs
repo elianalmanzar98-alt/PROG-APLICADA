@@ -15,6 +15,8 @@ public class Libros
 
     [Required(ErrorMessage = "El Año de Publicacion debe de ser eobligatorio")]
     public int AnoPublicacion { get; set; }
+
+    public int CantidadDisponible{get; set;}
 }
 
 

@@ -59,4 +59,36 @@ public class LibrosService(IDbContextFactory<Contexto> DbFactory)
         await using var contexto = await DbFactory.CreateDbContextAsync();
         return await contexto.Libros .Where(criterio)  .AsNoTracking() .ToListAsync();
     }
+
+    
+    public async Task<List<LibroConPromedio>> ListarConPromedio(Expression<Func<Libros, bool>> criterio)
+    {
+    await using var contexto = await DbFactory.CreateDbContextAsync();
+
+    var libros = await contexto.Libros
+        .Where(criterio)
+        .AsNoTracking()
+        .ToListAsync();
+
+    var ids = libros.Select(l => l.LibroId).ToList();
+    var prestamos = await contexto.Prestamos
+        .Where(p => ids.Contains(p.LibroId))
+        .AsNoTracking()
+        .ToListAsync();
+
+    var hoy = DateTime.Today;
+
+    return libros.Select(l =>
+    {
+        var suyos = prestamos.Where(p => p.LibroId == l.LibroId).ToList();
+        return new LibroConPromedio
+        {
+            Libro = l,
+            VecesPrestado = suyos.Count,
+            PromedioDias = suyos.Count == 0
+                ? 0
+                : suyos.Average(p => ((p.FechaDevolucion ?? hoy).Date - p.FechaPrestamo.Date).TotalDays)
+        };
+    }).ToList();
+    }
 }

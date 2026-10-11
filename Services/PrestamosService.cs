@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GestionLibros.Services;
 
-public class PrestamosService(IDbContextFactory<Contexto> DbFactory) : IServiceProvider<Prestamos>
+public class PrestamosService(IDbContextFactory<Contexto> DbFactory) : IService<Prestamos>
 {
     public async Task<bool> Guardar(Prestamos prestamo)
     {
