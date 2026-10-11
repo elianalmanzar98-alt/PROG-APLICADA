@@ -1,3 +1,6 @@
+
+
+
 @if (Visible)
 {
     <div class="modal fade show d-block" tabindex="-1">
@@ -22,7 +25,7 @@
 
 @code {
     [Parameter] public string Titulo { get; set; } = "Confirmar";
-    [Parameter] public string Mensaje { get; set; } = "¿Desea continuar?";
+    [Parameter] public string Mensaje { get; set; } = "desea continuar?";
     [Parameter] public string TextoConfirmar { get; set; } = "Confirmar";
     [Parameter] public EventCallback OnConfirmar { get; set; }
 

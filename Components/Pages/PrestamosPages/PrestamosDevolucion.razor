@@ -1,0 +1,116 @@
+@page "/Prestamo/Devolucion"
+@inject IService<Prestamos> prestamosService
+@rendermode InteractiveServer
+
+<PageTitle>Devolucion de libros</PageTitle>
+
+<div class="card shadow-lg m-4">
+    <div class="card-header text-center">
+        <h3>Devolución de Libros</h3>
+    </div>
+    <div class="card-body">
+        @if (!string.IsNullOrEmpty(MensajeError))
+        {
+            <div class="alert alert-danger">@MensajeError</div>
+        }
+        @if (!string.IsNullOrEmpty(MensajeExito))
+        {
+            <div class="alert alert-success">@MensajeExito</div>
+        }
+
+        <table class="table table-bordered text-center align-middle">
+            <thead>
+                <tr>
+                    <th>PrestamoId</th>
+                    <th>Estudiante</th>
+                    <th>Libro</th>
+                    <th>Fecha préstamo</th>
+                    <th>Días prestado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in Lista)
+                {
+                    <tr>
+                        <td>@p.PrestamoId</td>
+                        <td>@p.Estudiante?.Nombres</td>
+                        <td>@p.Libro?.Titulo</td>
+                        <td>@p.FechaPrestamo.ToString("dd/MM/yyyy")</td>
+                        <td>@((DateTime.Today - p.FechaPrestamo.Date).Days)</td>
+                        <td>
+                            <button class="btn btn-outline-success" @onclick="() => AbrirDevolver(p)">Devolver</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <p><strong>Cantidad:</strong> @Lista.Count</p>
+    </div>
+</div>
+
+<a href="/Prestamo/Index" class="btn btn-outline-primary ms-4">Volver</a>
+
+<ModalConfirmacion @ref="modal"
+                Titulo="Registrar devolución"
+                Mensaje="@MensajeDevolver"
+                TextoConfirmar="Devolver"
+                OnConfirmar="Devolver" />
+
+@code {
+    public List<Prestamos> Lista { get; set; } = new();
+    public string MensajeError { get; set; } = "";
+    public string MensajeExito { get; set; } = "";
+
+    private ModalConfirmacion? modal;
+    private int IdDevolver;
+    private string MensajeDevolver = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Cargar();
+    }
+
+    private async Task Cargar()
+    {
+        Lista = await prestamosService.Listar(p => p.Estado == "Prestado");
+    }
+
+    private void AbrirDevolver(Prestamos prestamo)
+    {
+        IdDevolver = prestamo.PrestamoId;
+        MensajeDevolver = $"Confirma la devolucion de \"{prestamo.Libro?.Titulo}\" por parte de {prestamo.Estudiante?.Nombres}?";
+        modal?.Abrir();
+    }
+
+    private async Task Devolver()
+    {
+        MensajeError = "";
+        MensajeExito = "";
+
+        var prestamo = await prestamosService.Buscar(IdDevolver);
+        if (prestamo == null || prestamo.Estado != "Prestado")
+        {
+            MensajeError = "El prestamo no existe o ya fue devuelto";
+            await Cargar();
+            return;
+        }
+
+        if (DateTime.Today < prestamo.FechaPrestamo.Date)
+        {
+            MensajeError = "La fecha de devolucion no puede ser anterior a la del prestamo";
+            return;
+        }
+
+        prestamo.FechaDevolucion = DateTime.Today;
+        prestamo.Estado = "Devuelto";
+
+        if (await prestamosService.Guardar(prestamo))
+            MensajeExito = "Libro devuelto correctamente";
+        else
+            MensajeError = "Error al registrar la devolucion";
+
+        await Cargar();
+    }
+}

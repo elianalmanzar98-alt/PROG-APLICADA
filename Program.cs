@@ -2,6 +2,7 @@ using GestionLibros.DAL;
 using GestionLibros.Services;
 using Microsoft.EntityFrameworkCore;
 using GestionLibros.Components;
+using GestionLibros.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +18,7 @@ builder.Services.AddDbContextFactory<Contexto>(o => o.UseSqlServer(ConStr));
 builder.Services.AddScoped<LibrosService>();
 builder.Services.AddScoped<EstudiantesService>();
 builder.Services.AddScoped<PrestamosService>();
+builder.Services.AddScoped<IService<Prestamos>>(Span => Sp.GetRequiredService<PrestamosService>());
 
 var app = builder.Build();
 
