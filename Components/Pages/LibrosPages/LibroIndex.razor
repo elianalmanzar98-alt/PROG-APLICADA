@@ -38,6 +38,7 @@
                     <th>Título</th>
                     <th>Autor</th>
                     <th>Año de Publicación</th>
+                       <th>Cantidad disponible</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -49,6 +50,7 @@
                         <td>@libro.Titulo</td>
                         <td>@libro.Autor</td>
                         <td>@libro.AnoPublicacion</td>
+                           <td>@libro.CantidadDisponible</td>
                         <td>
                             <a href="/Libro/Edit/@libro.LibroId" class="btn btn-outline-warning">Editar</a>
                             <button class="btn btn-outline-danger" @onclick="() => AbrirEliminar(libro)">Eliminar</button>

@@ -3,6 +3,7 @@ using GestionLibros.Services;
 using Microsoft.EntityFrameworkCore;
 using GestionLibros.Components;
 using GestionLibros.Models;
+using Microsoft.AspNetCore.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +21,14 @@ builder.Services.AddScoped<EstudiantesService>();
 builder.Services.AddScoped<PrestamosService>();
 builder.Services.AddScoped<IService<Prestamos>>(sp => sp.GetRequiredService<PrestamosService>());
 
+builder.Services.AddControllers();
+builder.Services.AddScoped(sp =>
+{
+    var navegador = sp.GetRequiredService<NavigationManager>();
+    return new HttpClient {BaseAddress = new Uri(navegador.BaseUri)};
+
+});
+
 var app = builder.Build();
 
 
@@ -36,6 +45,7 @@ app.UseHttpsRedirection();
 app.UseAntiforgery();
 
 app.MapStaticAssets();
+app.MapControllers();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 

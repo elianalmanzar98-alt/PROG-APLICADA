@@ -12,6 +12,6 @@ public class EntradasDetalle
     public int EntradaId{get; set;}
     public int LibroId {get; set;}
     public int Cantidad{ get; set;}
-        
+    
     
 }

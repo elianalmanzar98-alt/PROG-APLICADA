@@ -107,12 +107,12 @@
     {
         if (Prestamo.Estado == "prestado" && Prestamo.FechaDevolucion != null)
         {
-            MensajeError = "Un prestamo en estado Prestado no debe tener fecha de devolucion.";
+            MensajeError = "Un prestamo en estado Prestado no debe tener fecha de devolucion";
             return false;
         }
         if (Prestamo.Estado == "Devuelto" && Prestamo.FechaDevolucion == null)
         {
-            MensajeError = "Indique la fecha de devolucion.";
+            MensajeError = "Indique la fecha de devolucion";
             return false;
         }
         if (Prestamo.FechaDevolucion != null && Prestamo.FechaDevolucion < Prestamo.FechaPrestamo)

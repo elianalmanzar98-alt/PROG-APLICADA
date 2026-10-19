@@ -1,0 +1,248 @@
+@page "/Entrada/Registro"
+@inject HttpClient httpClient
+@inject LibrosService librosService
+@rendermode InteractiveServer
+
+<PageTitle>Registro de Entradas</PageTitle>
+
+<EditForm Model="Entrada" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+
+    <div class="card shadow-lg m-4">
+        <div class="card-header">
+            <h4 class="mb-0">Registro de Entradas</h4>
+        </div>
+        <div class="card-body">
+
+            @if (!string.IsNullOrEmpty(MensajeError))
+            {
+                <div class="alert alert-danger">@MensajeError</div>
+            }
+            @if (!string.IsNullOrEmpty(MensajeExito))
+            {
+                <div class="alert alert-success">@MensajeExito</div>
+            }
+
+            <div class="mb-3">
+                <label class="form-label">Entrada Id:</label>
+                <div class="input-group">
+                    <InputNumber class="form-control" @bind-Value="Entrada.EntradaId" />
+                    <button type="button" class="btn btn-outline-primary" @onclick="Buscar">
+                        <span class="bi bi-search"></span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Fecha:</label>
+                <InputDate class="form-control" @bind-Value="Entrada.Fecha" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Concepto:</label>
+                <InputText class="form-control" @bind-Value="Entrada.Concepto" />
+                <ValidationMessage For="@(() => Entrada.Concepto)" />
+            </div>
+
+            <div class="border border-success rounded p-3 mb-3">
+                <h5>Libros de la entrada</h5>
+
+                <div class="row align-items-end mb-3">
+                    <div class="col-md-5">
+                        <label class="form-label">Libro:</label>
+                        <select class="form-select border-success" @bind="LibroSeleccionado">
+                            <option value="0">Elija una opción</option>
+                            @foreach (var l in ListaLibros)
+                            {
+                                <option value="@l.LibroId">@l.Titulo</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Cantidad:</label>
+                        <input type="number" class="form-control border-success" @bind="CantidadAgregar" />
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-primary" @onclick="AgregarDetalle">
+                            <span class="bi bi-plus-lg"></span> Agregar
+                        </button>
+                    </div>
+                </div>
+
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Libro</th>
+                            <th>Cantidad</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var d in Entrada.EntradasDetalle)
+                        {
+                            <tr>
+                                <td>@ListaLibros.FirstOrDefault(l => l.LibroId == d.LibroId)?.Titulo</td>
+                                <td>@d.Cantidad</td>
+                                <td>
+                                    <button type="button" class="btn btn-outline-dark btn-sm" @onclick="() => EliminarDetalle(d)">
+                                        <span class="bi bi-trash"></span> Eliminar
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                <div class="col-md-3">
+                    <label class="form-label">Total de libros:</label>
+                    <input class="form-control" value="@Entrada.EntradasDetalle.Sum(d => d.Cantidad)" readonly />
+                </div>
+            </div>
+        </div>
+
+        <div class="card-footer text-center">
+            <div class="btn-group">
+                <button type="button" class="btn btn-outline-primary" @onclick="Nuevo">
+                    <span class="bi bi-file-earmark-plus"></span> Nuevo
+                </button>
+                <button type="submit" class="btn btn-outline-success">
+                    <span class="bi bi-floppy"></span> Guardar
+                </button>
+                <button type="button" class="btn btn-outline-danger" @onclick="Eliminar">
+                    <span class="bi bi-trash"></span> Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    public Entradas Entrada { get; set; } = new();
+    public List<Libros> ListaLibros { get; set; } = new();
+    public string MensajeError { get; set; } = "";
+    public string MensajeExito { get; set; } = "";
+
+    public int LibroSeleccionado { get; set; }
+    public int CantidadAgregar { get; set; } = 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ListaLibros = await librosService.Listar(l => true);
+    }
+
+    public void Nuevo()
+    {
+        Entrada = new Entradas();
+        LibroSeleccionado = 0;
+        CantidadAgregar = 1;
+        MensajeError = "";
+        MensajeExito = "";
+    }
+
+    public async Task Buscar()
+    {
+        MensajeError = "";
+        MensajeExito = "";
+
+        if (Entrada.EntradaId <= 0)
+        {
+            MensajeError = "Digite el Id der la entrada que quiere buscar ";
+            return;
+        }
+
+        var respuesta = await httpClient.GetAsync($"api/Entradas/{Entrada.EntradaId}");
+        if (respuesta.IsSuccessStatusCode)
+            Entrada = await respuesta.Content.ReadFromJsonAsync<Entradas>() ?? new Entradas();
+        else
+            MensajeError = "Registro no se encontro ";
+    }
+
+    private void AgregarDetalle()
+    {
+        MensajeError = "";
+
+        if (LibroSeleccionado == 0)
+        {
+            MensajeError = "Seleccione un libro";
+            return;
+        }
+        if (CantidadAgregar <= 0)
+        {
+            MensajeError = "La cantidad debe ser mayor que 0";
+            return;
+        }
+
+        var existente = Entrada.EntradasDetalle.FirstOrDefault(d => d.LibroId == LibroSeleccionado);
+        if (existente != null)
+            existente.Cantidad += CantidadAgregar;
+        else
+            Entrada.EntradasDetalle.Add(new EntradasDetalle
+            {
+                LibroId = LibroSeleccionado,
+                Cantidad = CantidadAgregar
+            });
+
+        LibroSeleccionado = 0;
+        CantidadAgregar = 1;
+    }
+
+    private void EliminarDetalle(EntradasDetalle detalle)
+    {
+        Entrada.EntradasDetalle.Remove(detalle);
+    }
+
+    private bool Validar()
+    {
+        if (!Entrada.EntradasDetalle.Any())
+        {
+            MensajeError = "Agregue al menos un libro para ala entrada";
+            return false;
+        }
+        return true;
+    }
+
+    public async Task Guardar()
+    {
+        MensajeError = "";
+        MensajeExito = "";
+        if (!Validar()) return;
+
+        var respuesta = await httpClient.PostAsJsonAsync("api/Entradas", Entrada);
+        if (respuesta.IsSuccessStatusCode)
+        {
+            Entrada = await respuesta.Content.ReadFromJsonAsync<Entradas>() ?? Entrada;
+            MensajeExito = "Registro se guardo correctamente";
+        }
+        else
+            MensajeError = await LeerError(respuesta);
+    }
+
+    public async Task Eliminar()
+    {
+        MensajeError = "";
+        MensajeExito = "";
+
+        if (Entrada.EntradaId <= 0)
+        {
+            MensajeError = "Busque la entrada que desea eliminar";
+            return;
+        }
+
+        var respuesta = await httpClient.DeleteAsync($"api/Entradas/{Entrada.EntradaId}");
+        if (respuesta.IsSuccessStatusCode)
+        {
+            Nuevo();
+            MensajeExito = "El registro se elimino correctamente";
+        }
+        else
+            MensajeError = await LeerError(respuesta);
+    }
+
+    private static async Task<string> LeerError(HttpResponseMessage respuesta)
+    {
+        var texto = await respuesta.Content.ReadAsStringAsync();
+        return string.IsNullOrWhiteSpace(texto) || texto.StartsWith("{")
+            ? "Ocurrio un error al procesar la solicitud"
+            : texto;
+    }
+}
