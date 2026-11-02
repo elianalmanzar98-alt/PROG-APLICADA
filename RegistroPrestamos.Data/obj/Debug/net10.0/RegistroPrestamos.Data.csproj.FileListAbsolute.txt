@@ -1,0 +1,12 @@
+C:\PROG-APLICADA 3-2026\RegistroPrestamos.Api\RegistroPrestamos.Data\bin\Debug\net10.0\RegistroPrestamos.Data.deps.json
+C:\PROG-APLICADA 3-2026\RegistroPrestamos.Api\RegistroPrestamos.Data\bin\Debug\net10.0\RegistroPrestamos.Data.dll
+C:\PROG-APLICADA 3-2026\RegistroPrestamos.Api\RegistroPrestamos.Data\bin\Debug\net10.0\RegistroPrestamos.Data.pdb
+C:\PROG-APLICADA 3-2026\RegistroPrestamos.Api\RegistroPrestamos.Data\obj\Debug\net10.0\RegistroPrestamos.Data.csproj.AssemblyReference.cache
+C:\PROG-APLICADA 3-2026\RegistroPrestamos.Api\RegistroPrestamos.Data\obj\Debug\net10.0\RegistroPrestamos.Data.GeneratedMSBuildEditorConfig.editorconfig
+C:\PROG-APLICADA 3-2026\RegistroPrestamos.Api\RegistroPrestamos.Data\obj\Debug\net10.0\RegistroPrestamos.Data.AssemblyInfoInputs.cache
+C:\PROG-APLICADA 3-2026\RegistroPrestamos.Api\RegistroPrestamos.Data\obj\Debug\net10.0\RegistroPrestamos.Data.AssemblyInfo.cs
+C:\PROG-APLICADA 3-2026\RegistroPrestamos.Api\RegistroPrestamos.Data\obj\Debug\net10.0\RegistroPrestamos.Data.csproj.CoreCompileInputs.cache
+C:\PROG-APLICADA 3-2026\RegistroPrestamos.Api\RegistroPrestamos.Data\obj\Debug\net10.0\RegistroPrestamos.Data.dll
+C:\PROG-APLICADA 3-2026\RegistroPrestamos.Api\RegistroPrestamos.Data\obj\Debug\net10.0\refint\RegistroPrestamos.Data.dll
+C:\PROG-APLICADA 3-2026\RegistroPrestamos.Api\RegistroPrestamos.Data\obj\Debug\net10.0\RegistroPrestamos.Data.pdb
+C:\PROG-APLICADA 3-2026\RegistroPrestamos.Api\RegistroPrestamos.Data\obj\Debug\net10.0\ref\RegistroPrestamos.Data.dll

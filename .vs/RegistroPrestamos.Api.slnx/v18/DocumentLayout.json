@@ -1,0 +1,45 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\PROG-APLICADA 3-2026\\RegistroPrestamos.Api\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{9ECEA563-7091-477C-BC57-19293BA27B0E}|RegistroPrestamos.Services\\RegistroPrestamos.Services.csproj|c:\\prog-aplicada 3-2026\\registroprestamos.api\\registroprestamos.services\\registroprestamos.services.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{9ECEA563-7091-477C-BC57-19293BA27B0E}|RegistroPrestamos.Services\\RegistroPrestamos.Services.csproj|solutionrelative:registroprestamos.services\\registroprestamos.services.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "RegistroPrestamos.Services",
+              "DocumentMoniker": "C:\\PROG-APLICADA 3-2026\\RegistroPrestamos.Api\\RegistroPrestamos.Services\\RegistroPrestamos.Services.csproj",
+              "RelativeDocumentMoniker": "RegistroPrestamos.Services\\RegistroPrestamos.Services.csproj",
+              "ToolTip": "C:\\PROG-APLICADA 3-2026\\RegistroPrestamos.Api\\RegistroPrestamos.Services\\RegistroPrestamos.Services.csproj",
+              "RelativeToolTip": "RegistroPrestamos.Services\\RegistroPrestamos.Services.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-11-02T03:44:45.485Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:2:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:1:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
